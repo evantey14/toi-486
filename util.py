@@ -106,22 +106,17 @@ def get_stats(samples, sigma=1):
 
 def print_stats(name, samples, n=None, sigma=1):
     median, median_minus_one_sigma, median_plus_one_sigma = get_stats(samples, sigma)
+    lower = median - median_minus_one_sigma
+    upper = median_plus_one_sigma - median
 
     if n is None:
-        n = max(
-            get_rounding_digits(median - median_minus_one_sigma),
-            get_rounding_digits(median_plus_one_sigma - median),
-        )
+        n = max(get_rounding_digits(lower), get_rounding_digits(upper))
 
-    print(
-        "{name:10}{value:10.{n}f} [{lower:10.{n}f}, {upper:10.{n}f}]".format(
-            name=name,
-            value=median,
-            lower=median_minus_one_sigma - median,
-            upper=median_plus_one_sigma - median,
-            n=n,
-        )
-    )
+    try:
+        print(f"{name:10}{median:10.{n}f} [{-lower:10.{n}f}, {upper:10.{n}f}]")
+    except Exception as e:
+        # HACK: the above doesn't work with negative n, so fallback to round()
+        print(f"{name:10}{round(median, n):10} [{round(-lower, n):10}, {round(upper, n):10}]")
 
 
 def print_latex(prefix, name, value, error=None, n=None):
